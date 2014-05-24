@@ -1,0 +1,97 @@
+\section{PCF}
+\renewcommand{\ll}[1]{\lambda^{l}_{#1}}
+\newcommand{\rl}[1]{r^{l}_{#1}}
+\newcommand{\lb}[1]{\lambda^{b}_{#1}}
+\newcommand{\rb}[1]{r^{b}_{#1}}
+\newcommand{\tb}[1]{\overline{t_{#1 b}}}
+\newcommand{\tl}[1]{\overline{t_{#1 l}}}
+\newcommand{\Tdb}[1]{T_{DATA}^{#1,b}}
+\newcommand{\Tdl}[1]{T_{DATA}^{#1,l}}
+
+\subsection{PCF-0}
+Считаем, что CP много меньше CFP.
+Кадры опроса CF\_POLL{+DATA{+ACK}}
+
+Базовая станция (БС) работает в насыщении и передает пакеты длины $r_b$, которые доходят успешно с вероятностью $1-p_b$.
+
+\begin{tabular}{l l l}
+$p_{b}$ 	&---	&вероятность неуспешной передачи кадра с данными <<вниз>>  (downlink) \\
+$p_{c}$		&---	&вероятность неуспешной передачи служебного кадра <<вниз>> (downlink)   \\
+\end{tabular}
+
+Также имеется $N$ станций с насыщении $(r_l, p_l)$:
+
+\begin{tabular}{l l l}
+$r_{l}$ 	&---	&длина кадров с данными \\
+$p_{l}$		&---	&вероятность неуспешной передачи служебного кадра <<вверх>> (uplink)   \\
+\end{tabular}
+
+Найти пропускные способности $S_{down}$ и $S_{up}$.
+\begin{align*}
+S_{down} &= \frac{\alpha_b r_b}{T_{slot}},  & \alpha_b &= (1-p_b)(1-p_l); \\
+S_{up} &= \frac{\alpha_l r_l}{T_{slot}},  & \alpha_l &= (1-p_l)(1-p_b)^2,
+\end{align*}
+где 
+\begin{equation}
+\notag
+T_{slot} = T_{DATA}^b + p_b \cdot PIFS + (1-p_b)(SIFS + T_{DATA}^l + SIFS)
+\end{equation}
+Из выражений для $\alpha_l$ и $\alpha_b$ видно, что $\alpha_l < \alpha_b$, т.~е. восходящий (uplink) поток находится в менее выгодном положении, чем нисходящий (downlink).
+
+Может лучше посылать DATA и служебные кадры раздельно?
+
+\subsection{PCF-1}
+Шлем все кадры отдельно, тогда 
+\begin{align*}
+\alpha_b &= (1-p_b)(1-p_c)\\
+\alpha_l &= (1-p_l)(1-p_c)^2
+\end{align*}
+
+\begin{equation}
+\notag
+T_{slot} = T_{DATA} + p_b PIFS + (1-p_b)(2SIFS + ACK) + CF\_POLL + p_c PIFS + (1-p_c)(T_{DATA}^l + 2SIFS + (1-p_l)ACK)
+\end{equation}
+
+\subsection{PCF-2}
+Имеется $N$ станций подключенные к базовой станции (БС). На БС $N$ очередей: по одной на очереди на каждую станцию. 
+
+В каждую очередь $i$ базовой станции поступает пуассоновский поток интенсивности $\lb{i}$ для передачи соответствующей станции $i$ (downlink). В свою очередь на каждой станции $i$ генерируется пуассоновский поток пакетов интенсивности $\ll{i}$ для передачи на БС (uplink). 
+
+\begin{tabular}{l l l}
+$\tb{i}$ 	&---	&среднее время обслуживания пакета <<вниз>>  (downlink) \\
+$\tl{i}$	&---	&среднее время обслуживания пакета <<вверх>> (uplink)   \\
+$t_0$		&---	&служебный кадр (CF\_POLL) \\
+\end{tabular}
+
+Если $\theta_s$ --- среднее время обслуживания станции номер $s$, то 
+$T_{cycle} = \sum\limits_{s = 1}^{N} \theta_s$ --- среднее время обслуживания всех станций.
+\begin{equation}
+\notag
+\theta_s = \rho_{sb} \Tdb{s} + (1 - \rho_{sb})t_0 + \beta_{sb} PIFS + (1-\beta_{sb})(\rho_{sl}\Tdl{s} + (1- \rho_{sl})t_{null} + SIFS),
+\end{equation}
+где  
+
+\begin{tabular}{l l l}
+$\rho_{sb}$ 	&---	&вероятность того, что очередь на БС для станции $s$ не пуста \\
+$\rho_{sl}$		&---	&вероятность того, что очередь на станции $s$ не пуста  \\
+$\beta_{sb}$	&---	&вероятность неудачного опроса:\\
+\end{tabular}
+\begin{equation}
+\beta_{sb} = \rho_{sb} p^b_s + (1 - \rho_{sb})p_c.
+\end{equation}
+
+Теперь можем найти $\tb{i}$:
+\begin{equation}
+\notag
+\tb{i} = \frac{1-\alpha_{ib}}{\alpha_{ib}} T_{cycle} + \rho_{ib} T_{cycle} + (1 - \rho_{ib}) (T_{cycle}-t_{ib}').
+\end{equation}
+$t_{ib}'$ --- среднее время до начала обслуживания при поступлении в пустую очередь.
+\begin{equation}
+t_{ib}' = \frac{\int\limits_{0}^{T_{cycle}} x\lb{i}e^{-\lb{i}x}dx}{1-e^{-\lb{i}T_{cycle}}} = \frac{1-(1+\lb{i}T_{cycle})e^{-\lb{i}T_{cycle}}}{\lb{i}(1-e^{-\lb{i}T_{cycle}})}
+\end{equation}
+
+\begin{eqnarray}
+\alpha_{ib} & = & (1 - p_{i}^{b})((1-\rho_{il})(1-p_c)+\rho_{il}(1-p_{i}^l)) \\
+\alpha_{il} & = & (1 - \beta_{ib})(1-p_i^l)(1-\beta_{{(i+1)\mod N},b}) \\
+\end{eqnarray}
+
